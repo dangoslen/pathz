@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>me.dangoslen.pathz</groupId>
+  <artifactId>pathz</artifactId>
+  <version>0.10-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.0.0.RELEASE</version>
+  </parent>
+
+  <properties>
+    <java.version>1.8</java.version>
+    <feign-form.version>3.3.0</feign-form.version>
+    <feign.version>9.7.0</feign.version>
+  </properties>
+
+  <modules>
+    <module>bandwidth-client</module>
+    <module>pathz-server</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Feign -->
+      <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-core</artifactId>
+        <version>${feign.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-slf4j</artifactId>
+        <version>${feign.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-gson</artifactId>
+        <version>${feign.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-jackson</artifactId>
+        <version>${feign.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.openfeign</groupId>
+        <artifactId>feign-jaxrs</artifactId>
+        <version>${feign.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+</project>

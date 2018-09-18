@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>bandwidth-client</artifactId>
+    <groupId>me.dangoslen.pathz</groupId>
+    <version>0.10-SNAPSHOT</version>
+
+    <parent>
+        <groupId>me.dangoslen.pathz</groupId>
+        <artifactId>pathz</artifactId>
+        <version>0.10-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <project.rootDir>${project.basedir}/../../</project.rootDir>
+    </properties>
+
+    <dependencies>
+
+        <!-- Bandwidth -->
+        <dependency>
+            <groupId>com.bandwidth.sdk</groupId>
+            <artifactId>bandwidth-java-sdk</artifactId>
+            <version>1.10</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Feign -->
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-slf4j</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-gson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.openfeign</groupId>
+            <artifactId>feign-jaxrs</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>
