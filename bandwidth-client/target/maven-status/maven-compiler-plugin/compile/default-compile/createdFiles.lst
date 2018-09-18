@@ -1,6 +1,0 @@
-me/dangoslen/pathz/bandwidth/client/apis/messages/BandwidthMessagingService.class
-me/dangoslen/pathz/bandwidth/client/apis/messages/Message.class
-me/dangoslen/pathz/bandwidth/client/BandwidthServiceRegistry.class
-me/dangoslen/pathz/bandwidth/client/spring/EnableBandwidthClient.class
-me/dangoslen/pathz/bandwidth/client/apis/messages/BandwidthMessagingApiSpec.class
-me/dangoslen/pathz/bandwidth/client/apis/messages/HttpBandwidthMessagingService.class

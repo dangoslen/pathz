@@ -1,5 +1,6 @@
 package me.dangoslen.pathz.bandwidth.client.apis.messages;
 
+import com.google.common.base.MoreObjects;
 import org.joda.time.DateTime;
 
 public class Message {
@@ -46,5 +47,14 @@ public class Message {
 
     public String getState() {
         return state;
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("to", to)
+                .add("from", from)
+                .add("time", dateTime)
+                .toString();
     }
 }
