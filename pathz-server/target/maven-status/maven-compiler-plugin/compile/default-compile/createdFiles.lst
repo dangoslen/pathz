@@ -1,4 +1,7 @@
-me/dangoslen/pathz/api/MessagingCallbackController.class
-me/dangoslen/pathz/api/TeamController.class
 me/dangoslen/pathz/config/BandwidthRegistryConfig.class
+me/dangoslen/pathz/repository/UsersRepository.class
+me/dangoslen/pathz/repository/ProjectRepository.class
+me/dangoslen/pathz/api/MessagingCallbackController.class
+me/dangoslen/pathz/repository/TeamsRepository.class
+me/dangoslen/pathz/api/TeamController.class
 me/dangoslen/pathz/App.class
