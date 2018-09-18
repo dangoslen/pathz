@@ -1,1 +1,1 @@
-web: java -Dserver.port=$PORT $JAVA_OPTS -jar amuse-me-example/target/*.jar
+web: java -Dserver.port=$PORT $JAVA_OPTS -jar pathz-server/target/*.jar -Dspring.profiles.active=production
