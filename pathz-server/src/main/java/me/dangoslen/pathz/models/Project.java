@@ -16,6 +16,13 @@ public class Project {
     @JsonIgnore
     private ConcurrentHashMap<String, Team> teams;
 
+    @JsonIgnore
+    private TeamMate projectManager;
+
+    public Project() {
+        teams = new ConcurrentHashMap<>();
+    }
+
     public String getName() {
         return name;
     }
@@ -40,11 +47,23 @@ public class Project {
         this.id = id;
     }
 
-    public String getProjectManagerHandle() {
-        return projectManagerHandle;
+    public TeamMate getProjectManager() {
+        return projectManager;
     }
 
-    public void setProjectManagerHandle(String projectManager) {
+    public void setProjectManager(TeamMate projectManager) {
+        this.projectManager = projectManager;
+    }
+
+    public String getProjectManagerHandle() {
+        if (projectManager == null) {
+            return projectManagerHandle;
+        }
+        return projectManager.getHandle();
+    }
+
+    // Only for deserializer
+    private void setProjectManagerHandle(String projectManager) {
         this.projectManagerHandle = projectManager;
     }
 

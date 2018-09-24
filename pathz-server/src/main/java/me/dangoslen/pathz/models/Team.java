@@ -3,6 +3,8 @@ package me.dangoslen.pathz.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -13,6 +15,10 @@ public class Team {
 
     @JsonIgnore
     private Collection<TeamMate> teammates;
+
+    public Team() {
+        teammates = new ArrayList<>();
+    }
 
     public String getName() {
         return name;
