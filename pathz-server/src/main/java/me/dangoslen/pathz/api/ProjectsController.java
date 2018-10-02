@@ -83,41 +83,42 @@ public class ProjectsController {
     @GetMapping("/{id}/teams/{handle}")
     public ResponseEntity<Team> getProjectTeams(@PathVariable("id") int id, @PathVariable("handle") String handle) {
         Project project = projectRepository.getProject(id);
-        Team team = teamsRepository.getProjectTeam(project, handle);
-        if (team == null) {
+        Optional<Team> team = teamsRepository.getProjectTeam(project, handle);
+        if (!team.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(team);
+        return ResponseEntity.ok(team.get());
     }
 
     @GetMapping("/{id}/teams/{handle}/teammates")
     public ResponseEntity<Collection<TeamMate>> getProjectTeamTeammates(@PathVariable("id") int id, @PathVariable("handle") String handle) {
         Project project = projectRepository.getProject(id);
-        Team team = teamsRepository.getProjectTeam(project, handle);
-        if (team == null) {
+        Optional<Team> team = teamsRepository.getProjectTeam(project, handle);
+        if (!team.isPresent()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(team.getTeammates());
+        return ResponseEntity.ok(team.get().getTeammates());
     }
 
     @PutMapping("/{id}/teams/{handle}/teammates/{teammate}")
     public ResponseEntity<Team> addTeammateToTeam(
             @PathVariable("id") int id, @PathVariable("handle") String handle, @PathVariable("teammate") String teammateHandle) {
         Project project = projectRepository.getProject(id);
-        Team team = teamsRepository.getProjectTeam(project, handle);
-        if (team == null) {
+        Optional<Team> team = teamsRepository.getProjectTeam(project, handle);
+        if (!team.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
+        Team actualTeam = team.get();
         Optional<TeamMate> teamMate = teamMatesRepository.getTeamMate(teammateHandle);
         if (!teamMate.isPresent()) {
-            return ResponseEntity.badRequest().body(team);
+            return ResponseEntity.badRequest().body(actualTeam);
         }
 
-        team.addTeamMate(teamMate.get());
-        teamsRepository.saveProjectTeam(project, team);
+        actualTeam.addTeamMate(teamMate.get());
+        teamsRepository.saveProjectTeam(project, actualTeam);
 
-        return ResponseEntity.ok(team);
+        return ResponseEntity.ok(actualTeam);
     }
 
 }

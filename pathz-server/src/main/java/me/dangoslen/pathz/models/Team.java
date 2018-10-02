@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
 
@@ -19,7 +20,7 @@ public class Team {
     private Collection<TeamMate> teammates;
 
     public Team() {
-        teammates = new ArrayList<>();
+        teammates = new HashSet<>();
     }
 
     public String getName() {

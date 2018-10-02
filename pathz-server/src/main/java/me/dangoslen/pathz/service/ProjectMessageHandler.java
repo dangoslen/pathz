@@ -6,12 +6,16 @@ import me.dangoslen.pathz.bandwidth.client.apis.messages.Message;
 import me.dangoslen.pathz.models.Project;
 import me.dangoslen.pathz.models.Team;
 import me.dangoslen.pathz.models.TeamMate;
+import me.dangoslen.pathz.repository.TeamMatesRepository;
 import me.dangoslen.pathz.repository.TeamsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,24 +39,39 @@ public class ProjectMessageHandler {
     }
 
     public void parseMessageAndSendResultingMessages(Project project, Message message) {
-        Pair<Team, String> teamMessagePair = extractIntendedTeam(project, message);
-        if (teamMessagePair.getKey().getHandle().equalsIgnoreCase(DEFAULT_TEAM_HANDLE)
+        Pair<String, String> handleMessagePair = extractIntendedTeam(project, message);
+
+        Collection<TeamMate> teamMates = new ArrayList<>();
+        Optional<Team> team = teamsRepository.getProjectTeam(project, handleMessagePair.getKey());
+        if (team.isPresent()) {
+            teamMates = teamsRepository.getProjectTeammates(project, team.get().getHandle());
+        } else {
+            Optional<TeamMate> teamMate = teamsRepository.getProjectTeammate(project, handleMessagePair.getKey());
+            if (teamMate.isPresent()) {
+                teamMates.add(teamMate.get());
+            }
+        }
+
+        if (CollectionUtils.isEmpty(teamMates)) {
+            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "We couldn't find who you are trying to send this message to. Please try again!");
+        }
+
+        if (handleMessagePair.getKey().equalsIgnoreCase(DEFAULT_TEAM_HANDLE)
                 && !project.getProjectManager().getPhoneNumber().equalsIgnoreCase(message.getFrom())) {
             messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "You are not allowed to send message to @all");
         } else {
-            Collection<TeamMate> teamMates = teamsRepository.getProjectTeammates(project);
             for(TeamMate teamMate : teamMates) {
-                messagingService.sendMessageAndGetId(userId, teamMate.getPhoneNumber(), project.getPhoneNumber(), teamMessagePair.getValue());
+                messagingService.sendMessageAndGetId(userId, teamMate.getPhoneNumber(), project.getPhoneNumber(), handleMessagePair.getValue());
             }
         }
     }
 
-    private Pair<Team, String> extractIntendedTeam(Project project, Message message) {
+    private Pair<String, String> extractIntendedTeam(Project project, Message message) {
         String desiredMessage = message.getText().trim();
         if (desiredMessage.startsWith("@")) {
             Matcher matcher = MESSAGE_PATTERN.matcher(desiredMessage);
-            Team team = teamsRepository.getProjectTeam(project, matcher.group(1));
-            return new Pair<>(team, matcher.group(2));
+            matcher.matches();
+            return new Pair<>(matcher.group(1), matcher.group(2));
         }
         return new Pair(project.getTeam(DEFAULT_TEAM_HANDLE), desiredMessage);
     }

@@ -53,6 +53,12 @@ public class TeamsRepository {
         return Collections.emptyList();
     }
 
+    public Optional<TeamMate> getProjectTeammate(Project project, String handle) {
+        return getProjectTeammates(project).stream()
+                .filter((t) -> t.getHandle().equalsIgnoreCase(handle))
+                .findFirst();
+    }
+
     public Collection<Team> getProjectTeams(TeamMate teamMate) {
        return userTeams.get(teamMate.getHandle());
     }
