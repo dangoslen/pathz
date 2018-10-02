@@ -2,6 +2,7 @@ package me.dangoslen.pathz.api;
 
 import me.dangoslen.pathz.models.TeamMate;
 import me.dangoslen.pathz.repository.TeamMatesRepository;
+import me.dangoslen.pathz.utils.PhoneUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ public class TeamMatesController {
 
     @PostMapping
     public ResponseEntity<Void> createTeamMate(@RequestBody TeamMate teamMate, UriComponentsBuilder uriComponentsBuilder) {
+        teamMate.setPhoneNumber(PhoneUtils.getFormattedNumber(teamMate.getPhoneNumber()));
         teamMatesRepository.saveTeamMate(teamMate);
         UriComponents components = uriComponentsBuilder.path("/teammates/{handle}").buildAndExpand(teamMate.getHandle());
         return ResponseEntity.created(components.toUri()).build();

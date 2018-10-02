@@ -7,6 +7,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Team {
     private String name;
@@ -51,4 +53,5 @@ public class Team {
     public void addTeamMate(TeamMate teamMate) {
         this.teammates.add(teamMate);
     }
+
 }

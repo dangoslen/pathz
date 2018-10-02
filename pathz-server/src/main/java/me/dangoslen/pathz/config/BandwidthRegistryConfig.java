@@ -16,7 +16,7 @@ public class BandwidthRegistryConfig {
     @Value("${bandwidth.api.secret}")
     private String secret;
 
-    @Value("${bandwidth.api.basePath")
+    @Value("${bandwidth.api.basePath}")
     private String basePath;
 
     @Bean

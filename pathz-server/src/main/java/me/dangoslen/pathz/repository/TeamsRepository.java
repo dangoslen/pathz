@@ -8,6 +8,8 @@ import me.dangoslen.pathz.models.TeamMate;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
 
@@ -37,15 +39,18 @@ public class TeamsRepository {
         return getProjectTeammates(project, DEFAULT_TEAM_HANDLE);
     }
 
-    public Team getProjectTeam(Project project, String handle) {
+    public Optional<Team> getProjectTeam(Project project, String handle) {
         return getProjectTeams(project).stream()
                 .filter((team -> team.getHandle().equalsIgnoreCase(handle)))
-                .findFirst()
-                .get();
+                .findFirst();
     }
 
     public Collection<TeamMate> getProjectTeammates(Project project, String handle) {
-        return getProjectTeam(project, handle).getTeammates();
+        Optional<Team> team = getProjectTeam(project, handle);
+        if (team.isPresent()) {
+            return team.get().getTeammates();
+        }
+        return Collections.emptyList();
     }
 
     public Collection<Team> getProjectTeams(TeamMate teamMate) {

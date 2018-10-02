@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,9 +42,11 @@ public class ProjectsController {
 
     @PostMapping
     public ResponseEntity<Project> createProject(@RequestBody Project project) {
-        Optional<TeamMate> teamMate = teamMatesRepository.getTeamMate(project.getProjectManagerHandle());
-        if (!teamMate.isPresent()) {
+        Optional<TeamMate> projectManager = teamMatesRepository.getTeamMate(project.getProjectManagerHandle());
+        if (!projectManager.isPresent()) {
             return ResponseEntity.badRequest().body(project);
+        } else {
+            project.setProjectManager(projectManager.get());
         }
 
         int projectId = atomicInteger.incrementAndGet();
