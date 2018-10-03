@@ -63,17 +63,17 @@ public class ProjectMessageHandler {
     }
 
     private PathzMessage getMessage(Project project, TeamMate sender, Message message) {
-        Pair<String, String> handleMessagePair = extractIntendedTeam(message);
-        Optional<Team> intendedTeam = teamsRepository.getProjectTeam(project, handleMessagePair.getKey());
+        HandleMessagePair handleMessagePair = extractIntendedTeam(message);
+        Optional<Team> intendedTeam = teamsRepository.getProjectTeam(project, handleMessagePair.getHandle());
         if (intendedTeam.isPresent()) {
             Collection<TeamMate> recipients = teamsRepository.getTeammatesForMessage(project, intendedTeam.get(), sender);
-            return new PathzMessage(intendedTeam, sender, handleMessagePair.getValue(), recipients);
+            return new PathzMessage(intendedTeam, sender, handleMessagePair.getMessage(), recipients);
         } else {
-            Optional<TeamMate> intendedTeammate = getIntendedTeammate(project, handleMessagePair.getKey());
+            Optional<TeamMate> intendedTeammate = getIntendedTeammate(project, handleMessagePair.getHandle());
             if (intendedTeammate.isPresent()) {
-                return new PathzMessage(intendedTeam, sender, handleMessagePair.getValue(), Arrays.asList(intendedTeammate.get()));
+                return new PathzMessage(intendedTeam, sender, handleMessagePair.getMessage(), Arrays.asList(intendedTeammate.get()));
             } else {
-                return new PathzMessage(intendedTeam, sender, handleMessagePair.getValue(), Collections.emptyList());
+                return new PathzMessage(intendedTeam, sender, handleMessagePair.getMessage(), Collections.emptyList());
             }
         }
     }
@@ -85,14 +85,14 @@ public class ProjectMessageHandler {
         return teamsRepository.getProjectTeammate(project, handle);
     }
 
-    private Pair<String, String> extractIntendedTeam(Message message) {
+    private HandleMessagePair extractIntendedTeam(Message message) {
         String desiredMessage = message.getText().trim();
         if (desiredMessage.startsWith("@")) {
             Matcher matcher = MESSAGE_PATTERN.matcher(desiredMessage);
             matcher.matches();
-            return new Pair<>(matcher.group(1), matcher.group(2));
+            return new HandleMessagePair(matcher.group(1), matcher.group(2));
         }
-        return new Pair(DEFAULT_TEAM_HANDLE, desiredMessage);
+        return new HandleMessagePair(DEFAULT_TEAM_HANDLE, desiredMessage);
     }
 
     private Optional<TeamMate> getSendingTeammate(Project project, String fromNumber) {
