@@ -1,6 +1,5 @@
 package me.dangoslen.pathz.service;
 
-import javafx.util.Pair;
 import me.dangoslen.pathz.bandwidth.client.apis.messages.BandwidthMessagingService;
 import me.dangoslen.pathz.bandwidth.client.apis.messages.Message;
 import me.dangoslen.pathz.models.Project;
@@ -12,9 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
-import javax.swing.text.html.Option;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,7 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
-import static me.dangoslen.pathz.config.Variables.TEAMS_RESERVED_HANDLE;
 
 @Service
 public class ProjectMessageHandler {
