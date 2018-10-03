@@ -5,11 +5,13 @@ import com.google.common.collect.Multimap;
 import me.dangoslen.pathz.models.Project;
 import me.dangoslen.pathz.models.Team;
 import me.dangoslen.pathz.models.TeamMate;
+import me.dangoslen.pathz.service.TeamMessageHandler;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
 
@@ -18,10 +20,20 @@ public class TeamsRepository {
 
     private Multimap<Integer, Team> projectTeams;
     private Multimap<String, Team> userTeams;
+    private ConcurrentHashMap<String, TeamMessageHandler> messageHandlers;
 
     TeamsRepository() {
         this.projectTeams = ArrayListMultimap.create();
         this.userTeams = ArrayListMultimap.create();
+        this.messageHandlers = new ConcurrentHashMap<>();
+    }
+
+    public void saveProjectTeam(Project project, Team team, TeamMessageHandler messageHandler) {
+        projectTeams.put(project.getId(), team);
+        messageHandlers.put(team.getHandle(), messageHandler);
+        for(TeamMate mate : team.getTeammates()) {
+            userTeams.put(mate.getHandle(), team);
+        }
     }
 
     public void saveProjectTeam(Project project, Team team) {
@@ -61,5 +73,13 @@ public class TeamsRepository {
 
     public Collection<Team> getProjectTeams(TeamMate teamMate) {
        return userTeams.get(teamMate.getHandle());
+    }
+
+    public Collection<TeamMate> getTeammatesForMessage(Project project, Team team, TeamMate sender) {
+        TeamMessageHandler handler = messageHandlers.get(team.getHandle());
+        if (handler == null) {
+            handler = new TeamMessageHandler.DefaultMessageHandler();
+        }
+        return handler.getRecipients(project, team, sender);
     }
 }

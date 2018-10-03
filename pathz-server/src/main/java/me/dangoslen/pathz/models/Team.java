@@ -2,6 +2,7 @@ package me.dangoslen.pathz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import me.dangoslen.pathz.service.TeamMessageHandler;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

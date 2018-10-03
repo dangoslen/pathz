@@ -13,66 +13,99 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
+import static me.dangoslen.pathz.config.Variables.TEAMS_RESERVED_HANDLE;
 
 @Service
 public class ProjectMessageHandler {
 
     private final TeamsRepository teamsRepository;
+    private final TeamMatesRepository teamMatesRepository;
     private final BandwidthMessagingService messagingService;
     private final String userId;
 
     private static final Pattern MESSAGE_PATTERN = Pattern.compile("(@.*?)\\s(.*)");
 
     @Autowired
-    ProjectMessageHandler(TeamsRepository teamsRepository, BandwidthMessagingService messagingService,
-                          @Value("${bandwidth.api.userId}") String userId) {
+    ProjectMessageHandler(TeamsRepository teamsRepository, TeamMatesRepository teamMatesRepository,
+                          BandwidthMessagingService messagingService, @Value("${bandwidth.api.userId}") String userId) {
         this.teamsRepository = teamsRepository;
         this.messagingService = messagingService;
+        this.teamMatesRepository = teamMatesRepository;
         this.userId = userId;
     }
 
     public void parseMessageAndSendResultingMessages(Project project, Message message) {
-        Pair<String, String> handleMessagePair = extractIntendedTeam(project, message);
-
-        Collection<TeamMate> teamMates = new ArrayList<>();
-        Optional<Team> team = teamsRepository.getProjectTeam(project, handleMessagePair.getKey());
-        if (team.isPresent()) {
-            teamMates = teamsRepository.getProjectTeammates(project, team.get().getHandle());
-        } else {
-            Optional<TeamMate> teamMate = teamsRepository.getProjectTeammate(project, handleMessagePair.getKey());
-            if (teamMate.isPresent()) {
-                teamMates.add(teamMate.get());
-            }
+        Optional<TeamMate> optionalSender = getSendingTeammate(project, message.getFrom());
+        if (!optionalSender.isPresent()) {
+            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "You are not a member of this project.");
         }
 
-        if (CollectionUtils.isEmpty(teamMates)) {
-            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "We couldn't find who you are trying to send this message to. Please try again!");
-        }
-
-        if (handleMessagePair.getKey().equalsIgnoreCase(DEFAULT_TEAM_HANDLE)
-                && !project.getProjectManager().getPhoneNumber().equalsIgnoreCase(message.getFrom())) {
-            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "You are not allowed to send message to @all");
+        TeamMate sender = optionalSender.get();
+        PathzMessage pathzMessage = getMessage(project, sender, message);
+        if (CollectionUtils.isEmpty(pathzMessage.getRecipients())) {
+            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "Could not find the desired Team or TeamMate. Use '@teams' to find which teams you are a member of");
         } else {
-            for(TeamMate teamMate : teamMates) {
-                messagingService.sendMessageAndGetId(userId, teamMate.getPhoneNumber(), project.getPhoneNumber(), handleMessagePair.getValue());
+            String sentMessage = pathzMessage.getMessage();
+            for (TeamMate teamMate : pathzMessage.getRecipients()) {
+                messagingService.sendMessageAndGetId(userId, teamMate.getPhoneNumber(), project.getPhoneNumber(), sentMessage);
             }
         }
     }
 
-    private Pair<String, String> extractIntendedTeam(Project project, Message message) {
+    private PathzMessage getMessage(Project project, TeamMate sender, Message message) {
+        Pair<String, String> handleMessagePair = extractIntendedTeam(message);
+        Optional<Team> intendedTeam = teamsRepository.getProjectTeam(project, handleMessagePair.getKey());
+        if (intendedTeam.isPresent()) {
+            Collection<TeamMate> recipients = teamsRepository.getTeammatesForMessage(project, intendedTeam.get(), sender);
+            return new PathzMessage(intendedTeam, sender, handleMessagePair.getValue(), recipients);
+        } else {
+            Optional<TeamMate> intendedTeammate = getIntendedTeammate(project, handleMessagePair.getKey());
+            if (intendedTeammate.isPresent()) {
+                return new PathzMessage(intendedTeam, sender, handleMessagePair.getValue(), Arrays.asList(intendedTeammate.get()));
+            } else {
+                return new PathzMessage(intendedTeam, sender, handleMessagePair.getValue(), Collections.emptyList());
+            }
+        }
+    }
+
+    private Optional<TeamMate> getIntendedTeammate(Project project, String handle) {
+        if (project.getProjectManager().getHandle().equalsIgnoreCase(handle)) {
+            return Optional.of(project.getProjectManager());
+        }
+        return teamsRepository.getProjectTeammate(project, handle);
+    }
+
+    private Pair<String, String> extractIntendedTeam(Message message) {
         String desiredMessage = message.getText().trim();
         if (desiredMessage.startsWith("@")) {
             Matcher matcher = MESSAGE_PATTERN.matcher(desiredMessage);
             matcher.matches();
             return new Pair<>(matcher.group(1), matcher.group(2));
         }
-        return new Pair(project.getTeam(DEFAULT_TEAM_HANDLE), desiredMessage);
+        return new Pair(DEFAULT_TEAM_HANDLE, desiredMessage);
+    }
+
+    private Optional<TeamMate> getSendingTeammate(Project project, String fromNumber) {
+        Optional<TeamMate> optionalTeamMate = teamMatesRepository.getTeamMateByNumber(fromNumber);
+        if (optionalTeamMate.isPresent()) {
+            TeamMate sender = optionalTeamMate.get();
+            if (project.getProjectManager().getHandle().equalsIgnoreCase(sender.getHandle())
+                || !teamsRepository.getProjectTeammate(project, sender.getHandle()).isPresent()) {
+                return optionalTeamMate;
+            } else {
+                return optionalTeamMate;
+            }
+        }
+        return optionalTeamMate;
     }
 }

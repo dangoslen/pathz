@@ -11,9 +11,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TeamMatesRepository {
 
     private final ConcurrentHashMap<String, TeamMate> teamMates;
+    private final ConcurrentHashMap<String, TeamMate> teamMatesByNumber;
 
     TeamMatesRepository() {
         this.teamMates = new ConcurrentHashMap<>();
+        this.teamMatesByNumber = new ConcurrentHashMap<>();
     }
 
     public Collection<TeamMate> getTeamMates() {
@@ -22,10 +24,15 @@ public class TeamMatesRepository {
 
     public void saveTeamMate(TeamMate teamMate) {
         teamMates.merge(teamMate.getHandle(), teamMate, (handle, t) -> teamMate);
+        teamMatesByNumber.merge(teamMate.getPhoneNumber(), teamMate, (handle, t) -> teamMate);
     }
 
     public Optional<TeamMate> getTeamMate(String handle) {
         return Optional.ofNullable(teamMates.get(handle));
+    }
+
+    public Optional<TeamMate> getTeamMateByNumber(String number) {
+        return Optional.ofNullable(teamMatesByNumber.get(number));
     }
 
 }

@@ -7,6 +7,7 @@ import me.dangoslen.pathz.repository.ProjectRepository;
 import me.dangoslen.pathz.repository.TeamMatesRepository;
 import me.dangoslen.pathz.repository.TeamsRepository;
 import me.dangoslen.pathz.service.DefaultTeamFactory;
+import me.dangoslen.pathz.service.TeamMessageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +57,7 @@ public class ProjectsController {
         project.addTeam(defaultTeam);
 
         projectRepository.saveProject(project);
-        teamsRepository.saveProjectTeam(project, defaultTeam);
+        teamsRepository.saveProjectTeam(project, defaultTeam, new TeamMessageHandler.DefaultProjectTeamMessageHandler());
 
         return ResponseEntity.ok(project);
     }
@@ -76,6 +77,7 @@ public class ProjectsController {
     @PostMapping("/{id}/teams")
     public ResponseEntity<Team> createTeam(@PathVariable("id") int id, @RequestBody Team team) {
         Project project = projectRepository.getProject(id);
+        team.setProjectId(id);
         teamsRepository.saveProjectTeam(project, team);
         return ResponseEntity.ok(team);
     }
