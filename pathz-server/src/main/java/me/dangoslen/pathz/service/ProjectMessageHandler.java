@@ -27,34 +27,32 @@ public class ProjectMessageHandler {
 
     private final TeamsRepository teamsRepository;
     private final TeamMatesRepository teamMatesRepository;
-    private final BandwidthMessagingService messagingService;
-    private final String userId;
+    private final MessagingService messagingService;
 
     private static final Pattern MESSAGE_PATTERN = Pattern.compile("(@.*?)\\s(.*)");
 
     @Autowired
     ProjectMessageHandler(TeamsRepository teamsRepository, TeamMatesRepository teamMatesRepository,
-                          BandwidthMessagingService messagingService, @Value("${bandwidth.api.userId}") String userId) {
+                          MessagingService messagingService) {
         this.teamsRepository = teamsRepository;
         this.messagingService = messagingService;
         this.teamMatesRepository = teamMatesRepository;
-        this.userId = userId;
     }
 
     public void parseMessageAndSendResultingMessages(Project project, Message message) {
         Optional<TeamMate> optionalSender = getSendingTeammate(project, message.getFrom());
         if (!optionalSender.isPresent()) {
-            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "You are not a member of this project.");
+            messagingService.sendMessage(message.getFrom(), project.getPhoneNumber(), "You are not a member of this project.");
         }
 
         TeamMate sender = optionalSender.get();
         PathzMessage pathzMessage = getMessage(project, sender, message);
         if (CollectionUtils.isEmpty(pathzMessage.getRecipients())) {
-            messagingService.sendMessageAndGetId(userId, message.getFrom(), project.getPhoneNumber(), "Could not find the desired Team or TeamMate. Use '@teams' to find which teams you are a member of");
+            messagingService.sendMessage(message.getFrom(), project.getPhoneNumber(), "Could not find the desired Team or TeamMate. Use '@teams' to find which teams you are a member of");
         } else {
             String sentMessage = pathzMessage.getMessage();
             for (TeamMate teamMate : pathzMessage.getRecipients()) {
-                messagingService.sendMessageAndGetId(userId, teamMate.getPhoneNumber(), project.getPhoneNumber(), sentMessage);
+                messagingService.sendMessage(teamMate.getPhoneNumber(), project.getPhoneNumber(), sentMessage);
             }
         }
     }

@@ -7,6 +7,7 @@ import me.dangoslen.pathz.repository.ProjectRepository;
 import me.dangoslen.pathz.repository.TeamMatesRepository;
 import me.dangoslen.pathz.repository.TeamsRepository;
 import me.dangoslen.pathz.service.DefaultTeamFactory;
+import me.dangoslen.pathz.service.MessagingService;
 import me.dangoslen.pathz.service.TeamMessageHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,8 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
+
 @RestController
 @RequestMapping("/projects")
 public class ProjectsController {
@@ -32,13 +35,16 @@ public class ProjectsController {
     private final ProjectRepository projectRepository;
     private final TeamsRepository teamsRepository;
     private final TeamMatesRepository teamMatesRepository;
+    private final MessagingService messagingService;
 
     @Autowired
-    ProjectsController(ProjectRepository projectRepository, TeamsRepository teamsRepository, TeamMatesRepository teamMatesRepository) {
+    ProjectsController(ProjectRepository projectRepository, TeamsRepository teamsRepository,
+                       TeamMatesRepository teamMatesRepository, MessagingService messagingService) {
         this.atomicInteger = new AtomicInteger();
         this.projectRepository = projectRepository;
         this.teamsRepository = teamsRepository;
         this.teamMatesRepository = teamMatesRepository;
+        this.messagingService = messagingService;
     }
 
     @PostMapping
@@ -117,8 +123,17 @@ public class ProjectsController {
             return ResponseEntity.badRequest().body(actualTeam);
         }
 
+        TeamMate actualTeamMate = teamMate.get();
         actualTeam.addTeamMate(teamMate.get());
         teamsRepository.saveProjectTeam(project, actualTeam);
+
+        if (actualTeam.getHandle().equalsIgnoreCase(DEFAULT_TEAM_HANDLE)) {
+            messagingService.sendMessage(actualTeamMate.getPhoneNumber(), project.getPhoneNumber(),
+                    String.format("Welcome to the Team! You have been added to Project '%s'.", project.getName()));
+        } else {
+            messagingService.sendMessage(actualTeamMate.getPhoneNumber(), project.getPhoneNumber(),
+                    String.format("Welcome to the Team! You have been added to the '%s' Team!", actualTeam.getHandle()));
+        }
 
         return ResponseEntity.ok(actualTeam);
     }
