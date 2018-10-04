@@ -5,6 +5,14 @@ public class TeamMate {
     private String phoneNumber;
     private String handle;
 
+    private TeamMate() { }
+
+    public TeamMate(String name, String phoneNumber, String handle) {
+        this.name = name;
+        this.phoneNumber = phoneNumber;
+        this.handle = handle;
+    }
+
     public String getName() {
         return name;
     }

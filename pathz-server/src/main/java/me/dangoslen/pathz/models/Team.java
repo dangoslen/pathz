@@ -2,6 +2,7 @@ package me.dangoslen.pathz.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.google.common.base.Objects;
 import me.dangoslen.pathz.service.TeamMessageHandler;
 
 import java.util.ArrayDeque;
@@ -56,4 +57,17 @@ public class Team {
         this.teammates.add(teamMate);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Team team = (Team) o;
+        return projectId == team.projectId &&
+                Objects.equal(handle, team.handle);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(handle, projectId);
+    }
 }

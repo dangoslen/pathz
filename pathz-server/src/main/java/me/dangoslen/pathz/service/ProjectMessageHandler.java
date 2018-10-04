@@ -1,21 +1,19 @@
 package me.dangoslen.pathz.service;
 
-import me.dangoslen.pathz.bandwidth.client.apis.messages.BandwidthMessagingService;
 import me.dangoslen.pathz.bandwidth.client.apis.messages.Message;
 import me.dangoslen.pathz.models.Project;
 import me.dangoslen.pathz.models.Team;
 import me.dangoslen.pathz.models.TeamMate;
 import me.dangoslen.pathz.repository.TeamMatesRepository;
 import me.dangoslen.pathz.repository.TeamsRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +27,8 @@ public class ProjectMessageHandler {
     private final TeamMatesRepository teamMatesRepository;
     private final MessagingService messagingService;
 
+    private static final Pattern JOIN_PATTERN = Pattern.compile("(^/[j|J]oin)\\s(@.*)");
     private static final Pattern MESSAGE_PATTERN = Pattern.compile("(@.*?)\\s(.*)");
-
     @Autowired
     ProjectMessageHandler(TeamsRepository teamsRepository, TeamMatesRepository teamMatesRepository,
                           MessagingService messagingService) {
@@ -42,7 +40,18 @@ public class ProjectMessageHandler {
     public void parseMessageAndSendResultingMessages(Project project, Message message) {
         Optional<TeamMate> optionalSender = getSendingTeammate(project, message.getFrom());
         if (!optionalSender.isPresent()) {
-            messagingService.sendMessage(message.getFrom(), project.getPhoneNumber(), "You are not a member of this project.");
+            Matcher matcher = JOIN_PATTERN.matcher(message.getText());
+            if (matcher.matches()) {
+                TeamMate joiner = new TeamMate(matcher.group(2), message.getFrom(), matcher.group(2));
+                teamMatesRepository.saveTeamMate(joiner);
+                Team team = teamsRepository.getProjectTeam(project, DEFAULT_TEAM_HANDLE).get();
+                team.addTeamMate(joiner);
+                teamsRepository.saveProjectTeam(project, team);
+                messagingService.sendMessage(project.getPhoneNumber(), project.getPhoneNumber(),
+                        String.format("Welcome to the Team! You have been added to Project '%s'.", project.getName()));
+            } else {
+                messagingService.sendMessage(message.getFrom(), project.getPhoneNumber(), "You are not a member of this project.");
+            }
         }
 
         TeamMate sender = optionalSender.get();
@@ -65,6 +74,12 @@ public class ProjectMessageHandler {
         }
 
         Optional<Team> intendedTeam = teamsRepository.getProjectTeam(project, handleMessagePair.getHandle());
+        if (intendedTeam.isPresent() && StringUtils.isBlank(handleMessagePair.getMessage())) {
+            Team team = intendedTeam.get();
+            String teamsMessage = getTeammatesMessage(project, team);
+            return new PathzMessage(Optional.empty(), null, teamsMessage, Arrays.asList(sender));
+        }
+
         if (intendedTeam.isPresent()) {
             Collection<TeamMate> recipients = teamsRepository.getTeammatesForMessage(project, intendedTeam.get(), sender);
             return new PathzMessage(intendedTeam, sender, handleMessagePair.getMessage(), recipients);
@@ -113,9 +128,16 @@ public class ProjectMessageHandler {
     }
 
     private String getTeammateTeamMessage(Project project, TeamMate teammate) {
-        StringBuilder builder = new StringBuilder("You can send to the following teams:");
+        StringBuilder builder = new StringBuilder("You are apart of the following teams:");
         Collection<Team> teams = teamsRepository.getProjectTeams(project, teammate);
         teams.stream().forEach((team) -> builder.append("\n").append(team.getHandle()));
+        return builder.toString();
+    }
+
+    private String getTeammatesMessage(Project project, Team team) {
+        StringBuilder builder = new StringBuilder("Your team has the following members (limited to the first 10 if more than 10):");
+        Collection<TeamMate> teams = teamsRepository.getProjectTeammates(project, team.getHandle());
+        teams.stream().skip(0).limit(10).forEach((teammate) -> builder.append("\n").append(teammate.getHandle()));
         return builder.toString();
     }
 }

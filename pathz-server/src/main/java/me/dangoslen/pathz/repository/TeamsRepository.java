@@ -33,15 +33,19 @@ public class TeamsRepository {
         projectTeams.put(project.getId(), team);
         messageHandlers.put(team.getHandle(), messageHandler);
         for(TeamMate mate : team.getTeammates()) {
-            userTeams.put(mate.getHandle(), team);
+            Collection<Team> teams = userTeams.get(mate.getHandle());
+            if (!teams.contains(team)) {
+                userTeams.put(mate.getHandle(), team);
+            }
         }
     }
 
     public void saveProjectTeam(Project project, Team team) {
-        projectTeams.put(project.getId(), team);
-        for(TeamMate mate : team.getTeammates()) {
-            userTeams.put(mate.getHandle(), team);
+        TeamMessageHandler messageHandler = messageHandlers.get(team.getHandle());
+        if (messageHandler == null) {
+            messageHandler = new TeamMessageHandler.DefaultMessageHandler();
         }
+        saveProjectTeam(project, team, messageHandler);
     }
 
     public Collection<Team> getProjectTeams(Project project) {
