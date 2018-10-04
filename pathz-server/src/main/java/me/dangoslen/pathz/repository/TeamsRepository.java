@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
 
@@ -71,8 +72,10 @@ public class TeamsRepository {
                 .findFirst();
     }
 
-    public Collection<Team> getProjectTeams(TeamMate teamMate) {
-       return userTeams.get(teamMate.getHandle());
+    public Collection<Team> getProjectTeams(Project project, TeamMate teamMate) {
+       return userTeams.get(teamMate.getHandle()).stream()
+               .filter((team -> team.getProjectId() == project.getId()))
+               .collect(Collectors.toList());
     }
 
     public Collection<TeamMate> getTeammatesForMessage(Project project, Team team, TeamMate sender) {

@@ -15,10 +15,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static me.dangoslen.pathz.config.Variables.DEFAULT_TEAM_HANDLE;
+import static me.dangoslen.pathz.config.Variables.TEAMS_RESERVED_HANDLE;
 
 @Service
 public class ProjectMessageHandler {
@@ -59,6 +61,11 @@ public class ProjectMessageHandler {
 
     private PathzMessage getMessage(Project project, TeamMate sender, Message message) {
         HandleMessagePair handleMessagePair = extractIntendedTeam(message);
+        if (handleMessagePair.getHandle().equalsIgnoreCase(TEAMS_RESERVED_HANDLE)) {
+            String teamsMessage = getTeammateTeamMessage(project, sender);
+            return new PathzMessage(Optional.empty(), null, teamsMessage, Arrays.asList(sender));
+        }
+
         Optional<Team> intendedTeam = teamsRepository.getProjectTeam(project, handleMessagePair.getHandle());
         if (intendedTeam.isPresent()) {
             Collection<TeamMate> recipients = teamsRepository.getTeammatesForMessage(project, intendedTeam.get(), sender);
@@ -84,8 +91,11 @@ public class ProjectMessageHandler {
         String desiredMessage = message.getText().trim();
         if (desiredMessage.startsWith("@")) {
             Matcher matcher = MESSAGE_PATTERN.matcher(desiredMessage);
-            matcher.matches();
-            return new HandleMessagePair(matcher.group(1), matcher.group(2));
+            if (matcher.matches()) {
+                return new HandleMessagePair(matcher.group(1), matcher.group(2));
+            } else {
+                return new HandleMessagePair(desiredMessage, "");
+            }
         }
         return new HandleMessagePair(DEFAULT_TEAM_HANDLE, desiredMessage);
     }
@@ -102,5 +112,12 @@ public class ProjectMessageHandler {
             }
         }
         return optionalTeamMate;
+    }
+
+    private String getTeammateTeamMessage(Project project, TeamMate teammate) {
+        StringBuilder builder = new StringBuilder("You can send to the following teams:");
+        Collection<Team> teams = teamsRepository.getProjectTeams(project, teammate);
+        teams.stream().forEach((team) -> builder.append("\n").append(team.getHandle()));
+        return builder.toString();
     }
 }

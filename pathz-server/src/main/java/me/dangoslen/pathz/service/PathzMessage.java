@@ -37,9 +37,11 @@ public class PathzMessage {
 
     public String getMessage() {
         StringBuilder stringBuilder = new StringBuilder(message);
-        stringBuilder.append(" -").append(sender.getHandle());
-        if (team.isPresent()) {
-            stringBuilder.append(":").append(team.get().getHandle());
+        if (sender != null) {
+            stringBuilder.append(" -").append(sender.getHandle());
+            if (team.isPresent()) {
+                stringBuilder.append(":").append(team.get().getHandle());
+            }
         }
         return stringBuilder.toString();
     }
