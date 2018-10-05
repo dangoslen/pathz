@@ -81,8 +81,8 @@ public class ProjectMessageHandler {
         }
 
         if (intendedTeam.isPresent()) {
-            Collection<TeamMate> recipients = teamsRepository.getTeammatesForMessage(project, intendedTeam.get(), sender);
-            return new PathzMessage(intendedTeam, sender, handleMessagePair.getMessage(), recipients);
+            TeamMessageHandler handler =  teamsRepository.getTeamMessageHandler(intendedTeam.get());
+            return handler.constructTeamMessage(project, intendedTeam.get(), sender, handleMessagePair.getMessage());
         } else {
             Optional<TeamMate> intendedTeammate = getIntendedTeammate(project, handleMessagePair.getHandle());
             if (intendedTeammate.isPresent()) {

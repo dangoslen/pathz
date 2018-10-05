@@ -82,11 +82,11 @@ public class TeamsRepository {
                .collect(Collectors.toList());
     }
 
-    public Collection<TeamMate> getTeammatesForMessage(Project project, Team team, TeamMate sender) {
+    public TeamMessageHandler getTeamMessageHandler(Team team) {
         TeamMessageHandler handler = messageHandlers.get(team.getHandle());
         if (handler == null) {
             handler = new TeamMessageHandler.DefaultMessageHandler();
         }
-        return handler.getRecipients(project, team, sender);
+        return handler;
     }
 }
